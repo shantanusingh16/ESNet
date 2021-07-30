@@ -11,6 +11,7 @@ from torchvision.utils import make_grid
 from net_builder import build_net
 from dataloader.SceneFlowLoader import SceneFlowDataset
 from dataloader.DrivingStereoLoader import DrivingStereoDataset
+from dataloader.HabitatLoader import HabitatDataset
 from dataloader.GANet.data import get_training_set, get_test_set
 from utils.AverageMeter import AverageMeter
 from utils.common import logger
@@ -50,12 +51,15 @@ class DisparityTrainer(object):
         elif self.dataset == 'DrivingStereo':
             train_dataset = DrivingStereoDataset(txt_file = self.trainlist, root_dir = self.datapath, phase='train')
             test_dataset = DrivingStereoDataset(txt_file = self.vallist, root_dir = self.datapath, phase='test')  
+        elif self.dataset == 'Habitat':
+            train_dataset = HabitatDataset(split_path=self.trainlist, training=True)
+            test_dataset = HabitatDataset(split_path=self.vallist, training=False)  
         else:
             raise Exception("Unrecoginized dataset!")
         self.img_height, self.img_width = train_dataset.get_img_size()
         #self.scale_height, self.scale_width = test_dataset.get_scale_size()
 
-        datathread=16
+        datathread=8
         if os.environ.get('datathread') is not None:
             datathread = int(os.environ.get('datathread'))
         logger.info("Use %d processes to load data..." % datathread)
@@ -197,6 +201,7 @@ class DisparityTrainer(object):
                   epoch, i_batch, self.num_batches_per_epoch, batch_time=batch_time, 
                   data_time=data_time, loss=losses, flow2_EPE=flow2_EPEs))
         return losses.avg, flow2_EPEs.avg
+        
     @torch.no_grad()
     def validate(self):
         batch_time = AverageMeter()

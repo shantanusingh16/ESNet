@@ -39,6 +39,8 @@ def main(opt):
         mask = None
     elif opt.dataset ==  'DrivingStereo':
         mask = True
+    elif opt.dataset == 'Habitat':
+        mask = None
 
     #high_res_EPE = multiscaleloss(scales=1, downscale=1, weights=(1), loss='L1', sparse=False)
     # initialize a trainer

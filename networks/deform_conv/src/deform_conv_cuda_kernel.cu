@@ -59,6 +59,9 @@
  */
 
 // modified from https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch/blob/mmdetection/mmdet/ops/dcn/src/deform_conv_cuda_kernel.cu
+#ifndef AT_CHECK
+#define AT_CHECK TORCH_CHECK 
+#endif
 
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
