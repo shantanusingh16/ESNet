@@ -34,8 +34,10 @@ class HabitatDataset(data.Dataset):
         self.dploader = dploader
         self.training = training
 
-        self.img_size = (640, 480)
-        self.scale_size = (640, 480)
+        self.img_size = (480, 640)
+        self.scale_size = (384, 512)
+        self.baseline = 0.2
+        self.focal_length = 320
     
     def get_img_size(self):
         return self.img_size
@@ -46,13 +48,13 @@ class HabitatDataset(data.Dataset):
     def __getitem__(self, index):
         left = self.left_filepaths[index]
         right = self.left_filepaths[index].replace('left_rgb', 'right_rgb')
-        disp_L = self.left_filepaths[index].replace('left_rgb', 'left_disp').replace('jpg', 'png')
+        depth_L = self.left_filepaths[index].replace('left_rgb', 'left_depth').replace('jpg', 'png')
 
-        img_names = [left, right, disp_L]
+        img_names = [left, right, depth_L]
 
         left_img = self.loader(left)
         right_img = self.loader(right)
-        dataL = self.dploader(disp_L)
+        depth_arr = self.dploader(depth_L)
 
         if self.training:  
            w, h = left_img.size
@@ -64,7 +66,9 @@ class HabitatDataset(data.Dataset):
            left_img = left_img.crop((x1, y1, x1 + tw, y1 + th))
            right_img = right_img.crop((x1, y1, x1 + tw, y1 + th))
 
-           dataL = np.ascontiguousarray(dataL,dtype=np.float32)/100
+           dataL = np.ascontiguousarray(depth_arr,dtype=np.float32)/6553.5
+           dataL = (self.baseline * self.focal_length)/dataL
+           dataL = np.nan_to_num(dataL, posinf=0, neginf=0)
            dataL = dataL[y1:y1 + th, x1:x1 + tw]
 
            processed = preprocess.get_transform(augment=False)  
@@ -74,9 +78,12 @@ class HabitatDataset(data.Dataset):
         #    return left_img, right_img, dataL
         else:
            w, h = left_img.size
-           dataL = np.ascontiguousarray(dataL,dtype=np.float32)/100
+           
+           dataL = np.ascontiguousarray(depth_arr,dtype=np.float32)/6553.5
+           dataL = (self.baseline * self.focal_length)/dataL
+           dataL = np.nan_to_num(dataL, posinf=0, neginf=0)
 
-           processed = preprocess.get_transform(augment=False)  
+           processed = preprocess.scale_transform(scale_size=self.get_scale_size()) # preprocess.get_transform(augment=False)
            left_img = processed(left_img)
            right_img = processed(right_img)
 
@@ -95,3 +102,8 @@ class HabitatDataset(data.Dataset):
 
     def __len__(self):
         return len(self.left_filepaths)
+
+
+if __name__ == '__main__':
+    dataset = HabitatDataset('/home/shantanu.singh/ESNet/lists/habitat_train_depth.list', True)
+    sample = dataset[0]

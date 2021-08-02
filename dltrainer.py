@@ -59,7 +59,7 @@ class DisparityTrainer(object):
         self.img_height, self.img_width = train_dataset.get_img_size()
         #self.scale_height, self.scale_width = test_dataset.get_scale_size()
 
-        datathread=8
+        datathread=16
         if os.environ.get('datathread') is not None:
             datathread = int(os.environ.get('datathread'))
         logger.info("Use %d processes to load data..." % datathread)
@@ -99,6 +99,7 @@ class DisparityTrainer(object):
                     self.net.load_state_dict(model_data)
                 self.is_pretrain = True
             else:
+                # self.is_pretrain = True
                 logger.warning('Can not find the specific model %s, initial a new model...', self.pretrain)
 
 
@@ -229,7 +230,7 @@ class DisparityTrainer(object):
                 output_net1 = scale_disp(output_net1, (output_net1.size()[0], self.img_height, self.img_width))
                 loss = self.epe(output_net1, target_disp)
                 flow2_EPE = self.epe(output_net1, target_disp)             
-            if self.net_name == 'fadnet':
+            elif self.net_name == 'fadnet':
                 output_net1, output_net2 = self.net(input_var)
                 output_net1 = scale_disp(output_net1, (output_net1.size()[0], self.img_height, self.img_width))
                 output_net2 = scale_disp(output_net2, (output_net2.size()[0], self.img_height, self.img_width))
@@ -246,7 +247,7 @@ class DisparityTrainer(object):
                 loss = self.epe(output_net3, target_disp)
                 flow2_EPE = loss
             else:
-                raise NotImplementedError
+                raise NotImplementedError(self.net_name)
 
             # record loss and EPE
             if loss.data.item() == loss.data.item():

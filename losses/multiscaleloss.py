@@ -8,6 +8,7 @@ import torch.nn.functional as F
 def EPE(input_flow, target_flow, size_average = True):
     target_valid = (target_flow < 192) & (target_flow > 0) 
     return F.l1_loss(input_flow[target_valid], target_flow[target_valid], size_average=size_average)
+
 def smoothL1(input_flow, target_flow, size_average = True):
     """
     When size_average = True (used in FADNet), the loss is averaged over pixels.
@@ -15,6 +16,7 @@ def smoothL1(input_flow, target_flow, size_average = True):
     """
     target_valid = (target_flow < 192) & (target_flow > 0) 
     return F.smooth_l1_loss(input_flow[target_valid], target_flow[target_valid], size_average=size_average)
+
 def robust_EPE(input_flow, target_flow, _div_flow = 0.05):
     N = input_flow.shape[0]
     target_flow = target_flow * _div_flow
