@@ -25,7 +25,7 @@ def disparity_loader(path):
 
 
 class HabitatDataset(data.Dataset):
-    def __init__(self, split_path, training, loader=default_loader, dploader= disparity_loader):
+    def __init__(self, split_path, training, scale_size=(384, 512), loader=default_loader, dploader= disparity_loader):
  
         self.split_path = split_path
         with open(split_path, 'r') as f:
@@ -35,7 +35,7 @@ class HabitatDataset(data.Dataset):
         self.training = training
 
         self.img_size = (480, 640)
-        self.scale_size = (384, 512)
+        self.scale_size = scale_size
         self.baseline = 0.2
         self.focal_length = 320
     

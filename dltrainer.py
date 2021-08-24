@@ -18,7 +18,7 @@ from utils.common import logger
 from losses.multiscaleloss import EPE
 from utils.preprocess import scale_disp
 from utils.preprocess import unnormalize_imagenet_img
-import skimage
+import cv2
 
 class DisparityTrainer(object):
     def __init__(self, net_name, lr, devices, dataset, trainlist, vallist, datapath, batch_size, maxdisp, pretrain=None):
@@ -228,6 +228,17 @@ class DisparityTrainer(object):
                 output = self.net(input_var)
                 output_net1 = output[0]
                 output_net1 = scale_disp(output_net1, (output_net1.size()[0], self.img_height, self.img_width))
+
+                if self.save_eval_output:
+                    depths = np.nan_to_num((320 * 0.2) / output_net1.squeeze().cpu().detach().numpy(), 10, 10)
+                    depths = (depths * 65535/10).astype(np.uint16)
+                    depth_filepaths = sample_batched['img_names'][2]
+                    rootdir = '/scratch/shantanu.singh/ESNet/results/tmp'
+                    scenes = [os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(fp)))) for fp in depth_filepaths]
+                    filenames = [os.path.basename(fp) for fp in depth_filepaths]
+                    [os.makedirs(os.path.join(rootdir, scene), exist_ok=True) for scene in scenes]
+                    [cv2.imwrite(os.path.join(rootdir, scenes[idx], filenames[idx]), depths[idx]) for idx in range(depths.shape[0])]
+
                 loss = self.epe(output_net1, target_disp)
                 flow2_EPE = self.epe(output_net1, target_disp)             
             elif self.net_name == 'fadnet':

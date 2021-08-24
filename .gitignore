@@ -93,3 +93,5 @@ libs/sync_bn/build/temp.linux-x86_64-3.7/build.ninja
 networks/deform_conv/build/temp.linux-x86_64-3.7/.ninja_deps
 networks/deform_conv/build/temp.linux-x86_64-3.7/.ninja_log
 networks/deform_conv/build/temp.linux-x86_64-3.7/build.ninja
+outmodels/*
+results/*
